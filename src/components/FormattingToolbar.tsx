@@ -1,16 +1,19 @@
 import React from "react";
 import { Editor } from "@tiptap/react";
 import styles from "./FormattingToolbar.module.css";
+import Upload from "./Upload";
 
 interface FormattingToolbarProps {
   editor: Editor | null;
   onSave: () => void;
+  onUpload: (file: File) => Promise<void>;
   disabled?: boolean;
 }
 
 const FormattingToolbar: React.FC<FormattingToolbarProps> = ({
   editor,
   onSave,
+  onUpload,
   disabled = false,
 }) => {
   if (!editor) return null;
@@ -81,6 +84,56 @@ const FormattingToolbar: React.FC<FormattingToolbarProps> = ({
       <div className={styles.separator}></div>
 
       <div className={styles.toolbarSection}>
+        {/* Font Family Dropdown */}
+        <select
+          className={styles.styleSelect}
+          value={(() => {
+            const currentFont = editor.getAttributes('textStyle').fontFamily;
+            if (!currentFont) return 'Arial';
+            
+            // Normalize the font value for better matching
+            const normalized = currentFont.toLowerCase().replace(/['"]/g, '');
+            
+            if (normalized.includes('arial')) return 'Arial';
+            if (normalized.includes('helvetica')) return 'Helvetica';
+            if (normalized.includes('times')) return 'Times New Roman, serif';
+            if (normalized.includes('georgia')) return 'Georgia, serif';
+            if (normalized.includes('courier')) return 'Courier New, monospace';
+            if (normalized.includes('monaco')) return 'Monaco, monospace';
+            if (normalized.includes('verdana')) return 'Verdana, sans-serif';
+            if (normalized.includes('tahoma')) return 'Tahoma, sans-serif';
+            if (normalized.includes('comic sans')) return 'Comic Sans MS, cursive';
+            if (normalized.includes('impact')) return 'Impact, sans-serif';
+            
+            return currentFont;
+          })()}
+          onChange={(e) => {
+            const value = e.target.value;
+            if (value === 'Arial') {
+              // For Arial, we can either set it explicitly or unset to use default
+              editor.chain().focus().unsetFontFamily().run();
+            } else {
+              editor.chain().focus().setFontFamily(value).run();
+            }
+          }}
+          title="Font Family"
+        >
+          <option value="Arial">Arial</option>
+          <option value="Helvetica">Helvetica</option>
+          <option value="Times New Roman, serif">Times New Roman</option>
+          <option value="Georgia, serif">Georgia</option>
+          <option value="Courier New, monospace">Courier New</option>
+          <option value="Monaco, monospace">Monaco</option>
+          <option value="Verdana, sans-serif">Verdana</option>
+          <option value="Tahoma, sans-serif">Tahoma</option>
+          <option value="Comic Sans MS, cursive">Comic Sans MS</option>
+          <option value="Impact, sans-serif">Impact</option>
+        </select>
+      </div>
+
+      <div className={styles.separator}></div>
+
+      <div className={styles.toolbarSection}>
         {/* Text Formatting */}
         <button
           className={`${styles.toolbarButton} ${editor.isActive("bold") ? styles.active : ""}`}
@@ -103,7 +156,16 @@ const FormattingToolbar: React.FC<FormattingToolbarProps> = ({
             <line x1="15" y1="4" x2="9" y2="20" />
           </svg>
         </button>
-        {/* Note: Underline is not included in StarterKit by default */}
+        <button
+          className={`${styles.toolbarButton} ${editor.isActive("underline") ? styles.active : ""}`}
+          onClick={() => editor.chain().focus().toggleUnderline().run()}
+          title="Underline (Ctrl+U)"
+        >
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <path d="M6 4v7a6 6 0 0 0 12 0V4" />
+            <line x1="4" y1="20" x2="20" y2="20" />
+          </svg>
+        </button>
         <button
           className={`${styles.toolbarButton} ${editor.isActive("strike") ? styles.active : ""}`}
           onClick={() => editor.chain().focus().toggleStrike().run()}
@@ -207,6 +269,48 @@ const FormattingToolbar: React.FC<FormattingToolbarProps> = ({
       <div className={styles.separator}></div>
 
       <div className={styles.toolbarSection}>
+        {/* Text Alignment */}
+        <button
+          className={`${styles.toolbarButton} ${editor.isActive({ textAlign: 'left' }) ? styles.active : ""}`}
+          onClick={() => editor.chain().focus().setTextAlign('left').run()}
+          title="Align Left"
+        >
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <line x1="21" y1="10" x2="3" y2="10" />
+            <line x1="15" y1="6" x2="3" y2="6" />
+            <line x1="17" y1="14" x2="3" y2="14" />
+            <line x1="13" y1="18" x2="3" y2="18" />
+          </svg>
+        </button>
+        <button
+          className={`${styles.toolbarButton} ${editor.isActive({ textAlign: 'center' }) ? styles.active : ""}`}
+          onClick={() => editor.chain().focus().setTextAlign('center').run()}
+          title="Align Center"
+        >
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <line x1="18" y1="10" x2="6" y2="10" />
+            <line x1="21" y1="6" x2="3" y2="6" />
+            <line x1="21" y1="14" x2="3" y2="14" />
+            <line x1="18" y1="18" x2="6" y2="18" />
+          </svg>
+        </button>
+        <button
+          className={`${styles.toolbarButton} ${editor.isActive({ textAlign: 'right' }) ? styles.active : ""}`}
+          onClick={() => editor.chain().focus().setTextAlign('right').run()}
+          title="Align Right"
+        >
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <line x1="21" y1="10" x2="3" y2="10" />
+            <line x1="21" y1="6" x2="9" y2="6" />
+            <line x1="21" y1="14" x2="7" y2="14" />
+            <line x1="21" y1="18" x2="11" y2="18" />
+          </svg>
+        </button>
+      </div>
+
+      <div className={styles.separator}></div>
+
+      <div className={styles.toolbarSection}>
         {/* Horizontal Rule */}
         <button
           className={styles.toolbarButton}
@@ -219,8 +323,12 @@ const FormattingToolbar: React.FC<FormattingToolbarProps> = ({
         </button>
       </div>
 
-      {/* Save Button - Right aligned */}
+      {/* Upload and Save Buttons - Right aligned */}
       <div className={styles.saveSection}>
+        <Upload
+          onUpload={onUpload}
+          disabled={disabled}
+        />
         <button
           className={styles.saveButton}
           onClick={onSave}
@@ -232,7 +340,6 @@ const FormattingToolbar: React.FC<FormattingToolbarProps> = ({
             <polyline points="17,21 17,13 7,13 7,21" />
             <polyline points="7,3 7,8 15,8" />
           </svg>
-          Save
         </button>
       </div>
     </div>

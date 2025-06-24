@@ -4,12 +4,18 @@ import { useEditor, EditorContent } from "@tiptap/react";
 import Highlight from "@tiptap/extension-highlight";
 import Typography from "@tiptap/extension-typography";
 import StarterKit from "@tiptap/starter-kit";
+import TextAlign from "@tiptap/extension-text-align";
+import Underline from "@tiptap/extension-underline";
+import TextStyle from "@tiptap/extension-text-style";
+import FontFamily from "@tiptap/extension-font-family";
+import Color from "@tiptap/extension-color";
 import React, { useState } from "react";
 import FormattingToolbar from "./FormattingToolbar";
 import { htmlToMarkdown, downloadMarkdown } from "../utils/markdownConverter";
 import { downloadAsDocx } from "../utils/docxConverter";
 import { downloadAsPdf } from "../utils/pdfConverter";
 import { SaveFormat, SaveModal } from "./SaveButton";
+import { importDocxFile } from "../utils/docxImporter";
 
 const extensions = [
   StarterKit.configure({
@@ -19,6 +25,15 @@ const extensions = [
   }),
   Highlight,
   Typography,
+  TextAlign.configure({
+    types: ['heading', 'paragraph'],
+  }),
+  Underline,
+  TextStyle,
+  FontFamily.configure({
+    types: ['textStyle'],
+  }),
+  Color,
 ];
 
 export const TiptapEditor = () => {
@@ -67,11 +82,31 @@ export const TiptapEditor = () => {
     setShowSaveModal(true);
   };
 
+  const handleUpload = async (file: File) => {
+    if (!editor) return;
+
+    try {
+      const result = await importDocxFile(file);
+      
+      // Set the imported HTML content in the editor
+      editor.commands.setContent(result.html);
+      
+      // Log any conversion messages/warnings
+      if (result.messages.length > 0) {
+        console.log('Import messages:', result.messages);
+      }
+    } catch (error) {
+      console.error('Error importing DOCX:', error);
+      throw error; // Re-throw so the Upload component can handle the error display
+    }
+  };
+
   return (
     <div className={styles.editorWrapper}>
       <FormattingToolbar 
         editor={editor} 
         onSave={handleSaveClick}
+        onUpload={handleUpload}
         disabled={!editor}
       />
       

@@ -16,7 +16,7 @@ interface SaveModalProps {
 
 export const SaveModal: React.FC<SaveModalProps> = ({ isOpen, onClose, onSave }) => {
   const [filename, setFilename] = useState("document");
-  const [format, setFormat] = useState<SaveFormat>("markdown");
+  const [format, setFormat] = useState<SaveFormat>("pdf");
   const modalRef = useRef<HTMLDivElement>(null);
   const filenameInputRef = useRef<HTMLInputElement>(null);
 
@@ -70,10 +70,10 @@ export const SaveModal: React.FC<SaveModalProps> = ({ isOpen, onClose, onSave })
 
   const getFileExtension = () => {
     switch (format) {
-      case "markdown": return ".md";
-      case "docx": return ".docx";
       case "pdf": return ".pdf";
-      default: return ".md";
+      case "docx": return ".docx";
+      case "markdown": return ".md";
+      default: return ".pdf";
     }
   };
 
@@ -119,9 +119,9 @@ export const SaveModal: React.FC<SaveModalProps> = ({ isOpen, onClose, onSave })
               onChange={(e) => setFormat(e.target.value as SaveFormat)}
               className={styles.formatSelect}
             >
-              <option value="markdown">Markdown (.md)</option>
-              <option value="docx">Word Document (.docx)</option>
               <option value="pdf">PDF Document (.pdf)</option>
+              <option value="docx">Word Document (.docx)</option>
+              <option value="markdown">Markdown (.md)</option>
             </select>
           </div>
 
